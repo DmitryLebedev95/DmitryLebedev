@@ -10,7 +10,7 @@ now = datetime.datetime.now()
 date_string = now.strftime("%Y-%m-%d_%H-%M-%S")
 
 # Slack Bot token and channel ID
-slack_token = "YOUR_SLACK_BOT_API"
+slack_token = "YOUR_SLACK_BOT_API_TOKEN"
 channel_id = "YOUR_SLACK_CHANNEL_ID"
 
 # Authenticate the Slack client
