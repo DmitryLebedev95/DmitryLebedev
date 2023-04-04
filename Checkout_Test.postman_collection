@@ -1,0 +1,1038 @@
+{
+	"info": {
+		"_postman_id": "244c2274-4b7c-49bc-927d-00044112fde8",
+		"name": "Checkout Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24177530"
+	},
+	"item": [
+		{
+			"name": "[Test] Place order",
+			"item": [
+				{
+					"name": "Authorization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"token_auth\", body.data.generateCustomerToken.token);\r",
+									"\r",
+									"pm.test(\"Auth token is recieved, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest('Get cart');\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation {\r\n  generateCustomerToken(email: \"dmitry.lebedev@onilab.com\", password: \"123456789Ass\") {\r\n    token\r\n  }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"cart_id\", body.data.customerCart.id);\r",
+									"\r",
+									"pm.test(\"Cart_id is recieved, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest('Add product');\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_auth}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "{\r\n  customerCart{\r\n    id\r\n  }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Products are added, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"const code = pm.collectionVariables.get('temp_loop_iteration')\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"if (code == (0)){    \r",
+									"    postman.setNextRequest('Create customer address');\r",
+									"} else {    \r",
+									"    postman.setNextRequest('Get customer addresses');\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "cart_id",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation AddSimpleProductsToCart(\r\n    $cartId: String!\r\n) {\r\n  addSimpleProductsToCart(\r\n    input: {\r\n      cart_id: $cartId\r\n      cart_items: [\r\n        {\r\n          data: {\r\n            quantity: 1           \r\n            sku: \"EXAMPLE\"            \r\n          }          \r\n        }\r\n      ]\r\n    }\r\n  ) {\r\n    cart {\r\n      items {\r\n        id\r\n        product {\r\n          sku\r\n          stock_status\r\n        }\r\n        quantity\r\n      }\r\n    }\r\n  }\r\n}",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create customer address",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Shipping address is created, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"const body = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"Created customer id\", body.data.createCustomerAddress.id);\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation {\r\n  createCustomerAddress(input: {\r\n            firstname: \"Test\"\r\n            lastname: \"Test\"\r\n            company: \"Company Name\"\r\n            street: [\"3320 N Crescent Dr\", \"Beverly Hills\"]\r\n            city: \"Los Angeles\"\r\n            region: {\r\n                region: \"FL\"\r\n            }           \r\n            postcode: \"90210\"\r\n            country_code: US\r\n            telephone: \"123-456-0000\"   \r\n    \r\n  }) {\r\n    city\r\n    company\r\n    country_code    \r\n    created_at      \r\n    default_billing\r\n    default_shipping\r\n    extension_attributes {\r\n      attribute_code\r\n      value\r\n    }\r\n    fax\r\n    firstname\r\n    id\r\n    lastname\r\n    middlename\r\n    postcode\r\n    prefix\r\n    region {\r\n      region\r\n      region_code      \r\n    }    \r\n    street\r\n    suffix\r\n    telephone\r\n    vat_id\r\n  }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get customer addresses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Customer addresses are displayed, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"const body = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"Customer address id\", body.data.customer.addresses[0].id);\r",
+									"\r",
+									"postman.setNextRequest('Set shipping address');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": " { customer {\r\n    addresses {\r\n      city\r\n      company\r\n      country_code\r\n      country_id\r\n      created_at     \r\n      customer_id\r\n      default_billing\r\n      default_shipping\r\n      fax\r\n      firstname\r\n      id\r\n      lastname\r\n      middlename\r\n      postcode\r\n      prefix\r\n      region {\r\n    region\r\n    region_code\r\n    region_id\r\n  }\r\n      region_id\r\n      street\r\n      suffix\r\n      telephone\r\n      vat_id\r\n    }\r\n    \r\n  }\r\n }",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set shipping address",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"carrier_code\", body.data.setShippingAddressesOnCart.cart.shipping_addresses[0].available_shipping_methods[0].carrier_code);\r",
+									"\r",
+									"pm.collectionVariables.set(\"method_code\", body.data.setShippingAddressesOnCart.cart.shipping_addresses[0].available_shipping_methods[0].method_code);\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Shipping address is changed, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"postman.setNextRequest('Set billing address');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation SetShippingAddressesOnCart(\r\n    $cartId: String!\r\n    $customerAddress: Int   \r\n) {\r\n  setShippingAddressesOnCart(\r\n    input: { cart_id: $cartId, shipping_addresses: [{customer_address_id: $customerAddress}] }\r\n  ) {\r\n    cart {\r\n      shipping_addresses {\r\n          available_shipping_methods {\r\n              carrier_code\r\n              method_code\r\n          }\r\n      }\r\n      email\r\n      id\r\n      is_virtual      \r\n      total_quantity\r\n    }\r\n  }\r\n}\r\n",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\",\r\n    \"customerAddress\": {{Customer address id}}\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set billing address",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const code = pm.collectionVariables.get('payment_code');\r",
+									"\r",
+									"pm.test(\"Shipping address is changed, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"if (code == (0)){    \r",
+									"    postman.setNextRequest('Order summary');\r",
+									"} else {    \r",
+									"    postman.setNextRequest('Set shipping method');\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation SetBillingAddressesOnCart(\r\n    $cartId: String!\r\n    $customerAddress: Int   \r\n) {\r\n  setBillingAddressOnCart(\r\n    input: { cart_id: $cartId, billing_address: {customer_address_id: $customerAddress} }\r\n  ) {\r\n    cart {\r\n      \r\n      email\r\n      id\r\n      is_virtual      \r\n      total_quantity\r\n    }\r\n  }\r\n}\r\n",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\",\r\n    \"customerAddress\": {{Customer address id}}\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Order summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = JSON.parse(responseBody);\r",
+									"\r",
+									"pm.collectionVariables.set(\"GrandTotal\", body.data.cart.prices.grand_total.value);\r",
+									"console.log(body.data.cart.prices.grand_total.value)\r",
+									"\r",
+									"pm.test(\"Order summary is recieved\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"));\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest('Set shipping method');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Cart(\r\n    $cartId: String!\r\n    )\r\n{\r\n  cart(cart_id: $cartId) {\r\n    items {\r\n        pack_size\r\n        product {\r\n            sku\r\n        }\r\n    }   \r\n    prices {      \r\n      grand_total {\r\n    currency\r\n    value\r\n  }      \r\n    }\r\n    shipping_addresses {\r\n      available_shipping_methods {\r\n      carrier_code\r\n      method_code    \r\n      }\r\n        }\r\n}\r\n}\r\n",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set shipping method",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"const code = pm.collectionVariables.get('temp_loop_iteration')\r",
+									"\r",
+									"pm.test(\"Free shipping is set, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"if (code == (0)){    \r",
+									"    postman.setNextRequest('Apply coupon');\r",
+									"} else {    \r",
+									"    postman.setNextRequest('Get available payment methods');\r",
+									"}\r",
+									"\r",
+									"console.log(pm.response.json())\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation SetShippingMethodsOnCart(\r\n    $cartId: String!\r\n    $carrier_code: String! \r\n    $method_code: String!\r\n) {\r\n  setShippingMethodsOnCart(input: {\r\n    cart_id: $cartId\r\n    shipping_methods: [\r\n      {\r\n        carrier_code: $carrier_code\r\n        method_code: $method_code\r\n      }\r\n    ]\r\n  }) {\r\n    cart {\r\n      prices {\r\n          grand_total {\r\n              currency\r\n              value\r\n          }\r\n          subtotal_excluding_tax {\r\n              currency\r\n              value\r\n          }\r\n                    \r\n      }  \r\n      shipping_addresses {\r\n        selected_shipping_method {\r\n          carrier_code\r\n          method_code\r\n          carrier_title\r\n          method_title\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\",\r\n    \"carrier_code\": \"{{carrier_code}}\",\r\n    \"method_code\": \"{{method_code}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Apply coupon",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = JSON.parse(responseBody)\r",
+									"const total = pm.collectionVariables.get('GrandTotal')\r",
+									"\r",
+									"pm.collectionVariables.set(\"discount_amount\", body.data.applyCouponToCart.cart.prices.discounts[0].amount.value);\r",
+									"const discount = pm.collectionVariables.get('discount_amount')\r",
+									"\r",
+									"\r",
+									"pm.test('Grand total is changed', () =>  {\r",
+									"    pm.expect(body.data.applyCouponToCart.cart.prices.grand_total.value).to.eql((total) - (discount))\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest('Remove coupon')"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation ApplyCouponToCart(\r\n    $cartId: String!\r\n    ) {\r\n  applyCouponToCart(\r\n    input: {\r\n      cart_id: $cartId\r\n      coupon_code: \"EXAMPLE\"\r\n    }\r\n  ) {\r\n    cart {\r\n      applied_coupons {\r\n        code\r\n        coupon_type\r\n      }\r\n       prices {\r\n        discounts {\r\n            amount {\r\n                value\r\n            }\r\n        }    \r\n        grand_total {\r\n        currency\r\n        value\r\n    }\r\n   }\r\n    }\r\n  }\r\n}\r\n\r\n",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove coupon",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"pm.test(\"Grand total is changed, no errors in response\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest('Get available payment methods')"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation RemoveCouponFromCart(\r\n    $cartId: String!\r\n    ) { \r\n  removeCouponFromCart(input: { cart_id: $cartId }) {\r\n    cart { \r\n      prices {\r\n          grand_total {\r\n              currency\r\n              value\r\n          }\r\n      }\r\n      total_quantity\r\n      shipping_addresses {\r\n          selected_shipping_method {\r\n              method_title\r\n              method_code\r\n              carrier_code\r\n          }\r\n      }\r\n    }\r\n  }\r\n}\r\n\r\n",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get available payment methods",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"pm.test(\"Payment codes are collected, no errors in response\", () => {\r",
+									"        const data = pm.response.json()\r",
+									"\r",
+									"        pm.expect(data).have.nested.property('data.cart.available_payment_methods')\r",
+									"        pm.expect(data.data.cart.available_payment_methods).to.be.an('array')\r",
+									"        pm.expect(data.data.cart.available_payment_methods.length).to.be.gt(0)\r",
+									"\r",
+									"        const codes = data.data.cart.available_payment_methods.reduce((result, item) => {\r",
+									"            console.log(item)\r",
+									"            item.payments.forEach((payment) => {\r",
+									"                result.push(payment.code)                \r",
+									"            })\r",
+									"            return result\r",
+									"        }, [])\r",
+									"        pm.collectionVariables.set(\"available_payment_codes\", codes);        \r",
+									"\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest('Set payment methods');\r",
+									"\r",
+									"console.log(pm.response.json())\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query PaymentMethods($cart_id: String!) {\r\n  cart(cart_id: $cart_id) {\r\n  available_payment_methods {\r\n        type_title\r\n        type_code\r\n        recommended        \r\n        payments {\r\n            title\r\n            card_types {\r\n                value\r\n            }\r\n            lock_shipping_address\r\n            title_description\r\n            from_type\r\n            code\r\n            disallow_po_boxes\r\n            payment_options {\r\n                name\r\n                value\r\n            }\r\n            free_items\r\n            free_items_seeds\r\n            additional_charge            \r\n            success_instruction\r\n        }\r\n    }\r\n    stash_points {\r\n      redemption_option\r\n      discount\r\n      points_used\r\n    }\r\n  }\r\n}\r\n",
+								"variables": "{\r\n    \"cart_id\": \"{{cart_id}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set payment methods",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const code = pm.collectionVariables.get('payment_code')\r",
+									"const codeNext = pm.collectionVariables.get('payment_code_next')\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Payment method is set\", () => {\r",
+									"pm.expect(jsonData.data.setPaymentMethodOnCart.cart.selected_payment_method.code).to.be.oneOf([code, codeNext])\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"if (code && code.length && codeNext.length){    \r",
+									"    postman.setNextRequest('Selected payment method');\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const availablePaymentCodes = pm.collectionVariables.get(\"available_payment_codes\");\r",
+									"if(availablePaymentCodes && availablePaymentCodes.length) {\r",
+									"    let currentIteration = pm.collectionVariables.get(\"temp_loop_iteration\");\r",
+									"\r",
+									"    if(!currentIteration) {\r",
+									"        pm.collectionVariables.set(\"temp_loop_iteration\", 1);\r",
+									"        currentIteration = pm.collectionVariables.get(\"temp_loop_iteration\");\r",
+									"    }\r",
+									"\r",
+									"    const currentCode = availablePaymentCodes[currentIteration - 1];\r",
+									"    const currentFreeItem = freeItem[currentIteration - 1]\r",
+									"    pm.collectionVariables.set(\"payment_code\", currentCode);\r",
+									"    pm.collectionVariables.set(\"payment_code_next\", availablePaymentCodes[currentIteration] ?? '');\r",
+									"    pm.collectionVariables.set(\"temp_loop_iteration\", currentIteration + 1);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation SetPaymentMethodOnCart(\r\n    $cartId: String!\r\n    $paymentCode: String!\r\n    )  {\r\n  setPaymentMethodOnCart(input: {\r\n      cart_id: $cartId\r\n      payment_method: {\r\n          code: $paymentCode        \r\n      }\r\n  }) {\r\n    cart {\r\n      selected_payment_method {\r\n        code\r\n        cc_last\r\n        free_items\r\n        \r\n        \r\n      }\r\n    \r\n    }\r\n  }\r\n}",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\",\r\n    \"paymentCode\": \"{{payment_code}}\"\r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Selected payment method",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.test(\"Payment method is set\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest(\"Place order\")\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Cart(\r\n    $cartId: String!\r\n    ) {\r\n  cart(cart_id: $cartId ) {\r\n    items {\r\n        quantity\r\n        total_qty\r\n    }    \r\n    selected_payment_method {\r\n      additional_charge\r\n      cc_last      \r\n      code      \r\n      card_types {\r\n          value\r\n      }\r\n      free_items      \r\n      from_type\r\n      additional_charge\r\n      charge_info {\r\n          type\r\n          value          \r\n      }\r\n      payment_options\r\n      purchase_order_number\r\n      title\r\n      type_code\r\n      type_title\r\n    }\r\n  }\r\n}",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Place order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Success payment\", () => {\r",
+									"    pm.expect(jsonData.data.placeOrder.order.status).to.be(\"success\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"postman.setNextRequest('Get order info');\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation PlaceOrder(\r\n    $cartId: String!\r\n    ) {\r\n  placeOrder(input: { cart_id: $cartId }) {\r\n    order {\r\n      message\r\n      order_id\r\n      order_number\r\n      redirect_url\r\n      status\r\n    }\r\n  }\r\n}",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get order info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const code = pm.collectionVariables.get('payment_code')\r",
+									"const codeNext = pm.collectionVariables.get('payment_code_next')\r",
+									"const body = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.test(\"Order info is recieved\", () => (\r",
+									"    pm.expect(pm.response.json()).not.have.property('errors')\r",
+									"))\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"if (code == (0)){    \r",
+									"    postman.setNextRequest('Authorization');\r",
+									"} else {    \r",
+									"    postman.setNextRequest('Delete address');\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Cart(\r\n    $cartId: String!\r\n    )\r\n{\r\n  GetOrderInfo(input: {\r\n      cart_id: $cartId\r\n  }) {\r\n    amount\r\n    billing_address {\r\n        address_1\r\n        address_2\r\n        city\r\n        country\r\n        country_code\r\n        firstname\r\n        lastname\r\n        state\r\n        state_code\r\n        telephone\r\n        zip\r\n    }    \r\n    created_at\r\n    currency\r\n    customer_email    \r\n    discount {\r\n      coupon_code\r\n      discount_amount\r\n      discount_type      \r\n    }\r\n    error_message\r\n    error_name\r\n    grand_total\r\n    redirect_url\r\n    paid_amount\r\n    paid_at\r\n    payment {\r\n      additional_charge\r\n      charge_info {\r\n        type\r\n        value\r\n      }\r\n      code\r\n      type_code\r\n      from_type      \r\n      payment_info {\r\n        account_name\r\n        account_number\r\n        account_type\r\n        card_number\r\n        card_type\r\n      }\r\n      payment_options {\r\n        name\r\n        value\r\n      }\r\n      success_instruction\r\n      title\r\n      title_description\r\n      type_title\r\n    }\r\n    items {\r\n      attribute_set_name\r\n      original_price\r\n      id      \r\n      prices {\r\n        discounts {\r\n            amount {\r\n                currency\r\n                value\r\n            }\r\n            label\r\n        }\r\n        price {\r\n            currency\r\n            value\r\n        }\r\n        row_total {\r\n            currency\r\n            value\r\n        }\r\n        row_total_including_tax {\r\n            currency\r\n            value\r\n        }\r\n        total_item_discount {\r\n            currency\r\n            value\r\n        } \r\n      }\r\n      product {\r\n          attribute_set_id          \r\n          image {\r\n              url\r\n          }\r\n          size          \r\n          sku\r\n\r\n      }\r\n      total_qty\r\n      quantity\r\n      \r\n      \r\n    }\r\n    public_id\r\n    shipping {\r\n      amount\r\n      code\r\n      description\r\n      shipping_estimate\r\n      title\r\n    }\r\n    shipping_address {\r\n      address_1\r\n      address_2\r\n      city\r\n      country\r\n      country_code\r\n      firstname\r\n      lastname\r\n      state\r\n      state_code\r\n      telephone\r\n      zip\r\n    }\r\n    status\r\n    subtotal\r\n    token\r\n    total_qty\r\n  }\r\n}",
+								"variables": "{\r\n    \"cartId\": \"{{cart_id}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete address",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Address is deleted successfuly\", () => {\r",
+									"    pm.expect(jsonData.data.deleteCustomerAddress).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 5000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('temp_loop_iteration', 0)\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteAddress(\r\n    $customerAddressId: Int!\r\n    ) {\r\n  deleteCustomerAddress(id: $customerAddressId)\r\n}\r\n",
+								"variables": "{\r\n    \"customerAddressId\": \"{{Created customer id}}\"\r\n   \r\n}"
+							}
+						},
+						"url": {
+							"raw": "https://expample.com/graphql",
+							"protocol": "https",
+							"host": [
+								"expample",
+								"com"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{your_auth_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token_auth",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cart_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "available_payment_codes",
+			"value": ""
+		},
+		{
+			"key": "temp_loop_iteration",
+			"value": ""
+		},
+		{
+			"key": "payment_code",
+			"value": ""
+		},
+		{
+			"key": "Customer address id",
+			"value": ""
+		},
+		{
+			"key": "Created customer id",
+			"value": ""
+		},
+		{
+			"key": "payment_code_next",
+			"value": ""
+		},
+		{
+			"key": "discount_amount",
+			"value": ""
+		},
+		{
+			"key": "carrier_code",
+			"value": ""
+		},
+		{
+			"key": "method_code",
+			"value": ""
+		},
+		{
+			"key": "GrandTotal",
+			"value": ""
+		}
+	]
+}
