@@ -19,7 +19,7 @@ client = WebClient(token=slack_token)
 
 # Set up authentication
 credentials = service_account.Credentials.from_service_account_file(
-    'C:\\Users\\Anonymous\\Downloads\\ultra-depot-367306-e60d1a76d5d8.json')
+    'C:\\path\to\your\keyfile.json')
 service = build('pagespeedonline', 'v5', credentials=credentials)
 
 urls = [
